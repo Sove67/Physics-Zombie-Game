@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class Grid_Randomizer : MonoBehaviour
+public class Grid_Generator : MonoBehaviour
 {
     // Num Grid
     public int gridLength;
@@ -12,10 +12,11 @@ public class Grid_Randomizer : MonoBehaviour
 
     // Vertex Grid
     public int sectionSideLength;
+    public int streetWidth;
     public List<List<Vector2[]>> vertexGrid = new List<List<Vector2[]>>();
 
     // ID Grid
-    public List<List<int?>> sectGrid = new List<List<int?>>();
+    public List<List<SectUnit>> sectGrid = new List<List<SectUnit>>();
 
     // Debugging
     public Text numbers;
@@ -28,7 +29,6 @@ public class Grid_Randomizer : MonoBehaviour
         VertexGrid();
         SectionedGrid();
     }
-
     // Creates a populated grid with random numbers within the "randomizerRange"
     public void NumberGrid()
     {
@@ -81,22 +81,24 @@ public class Grid_Randomizer : MonoBehaviour
             List<Vector2[]> vertexGridCollumn = new List<Vector2[]>();
             for (int b = 0; b < gridLength; b++)
             {
-                var x = a * sectionSideLength;
-                var y = b * sectionSideLength;
+                var x = a * (sectionSideLength + streetWidth);
+                var y = b * (sectionSideLength + streetWidth);
 
                 Vector2[] square = new Vector2[4];
 
                 /*  [0][1]
                     [2][3]  */
-                square[0] = new Vector2(x,                      y                       );
-                square[1] = new Vector2(x + sectionSideLength,  y                       );
-                square[2] = new Vector2(x,                      y - sectionSideLength   );
-                square[3] = new Vector2(x + sectionSideLength,  y - sectionSideLength   );
+                square[0] = new Vector2(x + streetWidth/2,                      y - streetWidth/2     );
+                square[1] = new Vector2(x - streetWidth/2 + sectionSideLength,  y - streetWidth/2     );
+                square[2] = new Vector2(x + streetWidth/2,                      y + streetWidth / 2 - sectionSideLength   );
+                square[3] = new Vector2(x - streetWidth/2 + sectionSideLength,  y + streetWidth / 2 - sectionSideLength   );
 
                 vertexGridCollumn.Add(square);
             }
+
             vertexGrid.Add(vertexGridCollumn);
         }
+
         //Debug.Log("Vertex Grid (0,0)[0]:" + vertexGrid[0][0][0]);
         // Debugging
         var text = "Number Grid:";
@@ -113,6 +115,24 @@ public class Grid_Randomizer : MonoBehaviour
         vertecies.text = text;
     }
 
+    public class SectUnit
+    {
+        public int? id { get; set; }
+        public bool UL { get; set; }
+        public bool UR { get; set; }
+        public bool DL { get; set; }
+        public bool DR { get; set; }
+
+        public SectUnit(int? id, bool UL, bool UR, bool DL, bool DR)
+        {
+            this.id = id;
+            this.UL = UL;
+            this.UR = UR;
+            this.DL = DL;
+            this.DR = DR;
+        }
+    }
+
     // Creates a populated grid with groups of "numGrid"'s values using a unique ID for each. 
     // Groups are formed by cells that are neighbouring another cell of the same number in the cardinal directions.
     public void SectionedGrid()
@@ -120,24 +140,23 @@ public class Grid_Randomizer : MonoBehaviour
         // Create an empty grid
         for (int a = 0; a < gridLength; a++)
         {
-            List<int?> sectGridCollumn = new List<int?>();
+            List<SectUnit> sectGridCollumn = new List<SectUnit>();
             for (int b = 0; b < gridLength; b++)
             {
-                sectGridCollumn.Add(null);
+                sectGridCollumn.Add(new SectUnit(null, true, true, true, true));
             }
             sectGrid.Add(sectGridCollumn);
         }
-
-        // Fill it with IDs
+        // Fill the grid with IDs
         var id = 0;
         for (int a = 0; a < gridLength; a++)
         {
             List<int?> sectGridCollumn = new List<int?>();
             for (int b = 0; b < gridLength; b++)
             {
-                if (sectGrid[a][b] == null)
+                if (sectGrid[a][b].id == null)
                 {
-                    sectGrid[a][b] = id;
+                    sectGrid[a][b].id = id;
 
                     GridCrawler(a, b, id);
 
@@ -153,7 +172,7 @@ public class Grid_Randomizer : MonoBehaviour
             text = text + "\n\n";
             for (int b = 0; b < gridLength; b++)
             {
-                text = text + sectGrid[a][b] + ", ";
+                text = text + sectGrid[a][b].id + ", ";
 
             }
         }
@@ -161,36 +180,69 @@ public class Grid_Randomizer : MonoBehaviour
         sections.text = text;
     }
 
-    // Assign any cardinally connected numbers the same ID as the first.
-    public void GridCrawler(int a, int b, int id)
-    {
 
+    // Assign any cardinally connected numbers the same ID as the first, and call on each
+    public void GridCrawler(int x, int y, int id)
+    {
         // Up
-        if (b - 1 > 0 && numGrid[a][b] == numGrid[a][b - 1] && sectGrid[a][b - 1] == null)
+        if (y - 1 > 0 && numGrid[x][y] == numGrid[x][y - 1] && sectGrid[x][y - 1].id == null)
         {
-            sectGrid[a][b - 1] = id;
-            GridCrawler(a, b - 1, id);
+            sectGrid[x][y - 1].id = id;
+            GridCrawler(x, y - 1, id);
         }
 
         // Left
-        if (a - 1 > 0 && numGrid[a][b] == numGrid[a - 1][b] && sectGrid[a - 1][b] == null)
+        if (x - 1 > 0 && numGrid[x][y] == numGrid[x - 1][y] && sectGrid[x - 1][y].id == null)
         {
-            sectGrid[a - 1][b] = id;
-            GridCrawler(a - 1, b, id);
+            sectGrid[x - 1][y].id = id;
+            GridCrawler(x - 1, y, id);
         }
 
         // Down
-        if (b + 1 < numGrid[0].Count && numGrid[a][b] == numGrid[a][b + 1] && sectGrid[a][b + 1] == null)
+        if (y + 1 < numGrid[0].Count && numGrid[x][y] == numGrid[x][y + 1] && sectGrid[x][y + 1].id == null)
         {
-            sectGrid[a][b + 1] = id;
-            GridCrawler(a, b + 1, id);
+            sectGrid[x][y + 1].id = id;
+            GridCrawler(x, y + 1, id);
         }
 
-        // Left
-        if (a + 1 < numGrid.Count && numGrid[a][b] == numGrid[a + 1][b] && sectGrid[a + 1][b] == null)
+        // Right
+        if (x + 1 < numGrid.Count && numGrid[x][y] == numGrid[x + 1][y] && sectGrid[x + 1][y].id == null)
         {
-            sectGrid[a + 1][b] = id;
-            GridCrawler(a + 1, b, id);
+            sectGrid[x + 1][y].id = id;
+            GridCrawler(x + 1, y, id);
+        }
+
+        //CornerChecker(x, y, id);
+    }
+
+    // Decide which vertecies will be used from exch segment
+    public void CornerChecker(int x, int y, int id)
+    {
+        // Up, Left
+        if (x - 1 > 0               && y - 1 > 0                    && numGrid[x][y] == numGrid[x - 1][y - 1])
+        {
+            sectGrid[x][y].UL = false;
+        }
+
+
+        // Up, Right
+        if (x + 1 < numGrid.Count   && y - 1 > 0                    && numGrid[x][y] == numGrid[x + 1][y - 1])
+        {
+            sectGrid[x][y].UL = false;
+        }
+
+
+        // Down, Left
+        if (x - 1 > 0               && y + 1 < numGrid[0].Count     && numGrid[x][y] == numGrid[x - 1][y + 1])
+        {
+            sectGrid[x][y].UL = false;
+        }
+
+
+        // Down, Right
+        if (x + 1 < numGrid.Count   && y + 1 < numGrid[0].Count     && numGrid[x][y] == numGrid[x + 1][y + 1])
+        {
+            sectGrid[x][y].UL = false;
         }
     }
 }

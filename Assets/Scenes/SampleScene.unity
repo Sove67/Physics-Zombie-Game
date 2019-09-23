@@ -598,8 +598,9 @@ GameObject:
   m_Component:
   - component: {fileID: 1824881851}
   - component: {fileID: 1824881850}
+  - component: {fileID: 1824881852}
   m_Layer: 0
-  m_Name: GameObject
+  m_Name: Script Container
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -620,6 +621,7 @@ MonoBehaviour:
   gridLength: 3
   randomizerRange: 4
   sectionSideLength: 10
+  streetWidth: 0
   numbers: {fileID: 2022769331}
   vertecies: {fileID: 1772937351}
   sections: {fileID: 1623335783}
@@ -642,6 +644,19 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1824881852
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1824881849}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bd52c1cce34470c44911abe37e9a3e0d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Grid_Generator: {fileID: 1824881850}
 --- !u!1 &2022769329
 GameObject:
   m_ObjectHideFlags: 0
