@@ -16,6 +16,10 @@ public class Grid_Generator : MonoBehaviour
 
     // Sector Grid
     public List<List<Sector>> sectorGrid = new List<List<Sector>>{};
+    public int sectionCount;
+
+    // Mesh Creator Link
+    public Mesh_Creator Mesh_Creator;
 
     // Debugging
     public Text numbers;
@@ -28,6 +32,9 @@ public class Grid_Generator : MonoBehaviour
         SectorGrid();
         VertexFill();
         Section();
+
+        // Render the grid
+        Mesh_Creator.CreateMeshObject();
     }
     
     public void NumberGrid() // Creates a populated grid with random numbers within the "randomizerRange"
@@ -133,6 +140,7 @@ public class Grid_Generator : MonoBehaviour
                 }
             }
         }
+        sectionCount = id;
 
         // Debugging
         var text = "Sections Grid:";
