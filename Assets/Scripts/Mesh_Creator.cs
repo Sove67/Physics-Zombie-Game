@@ -16,6 +16,7 @@ public class Mesh_Creator : MonoBehaviour
     {
         sectorGrid = Grid_Generator.sectorGrid;
     }
+
     public class MeshContainer
     {
         public GameObject gameObject { get; set; }
@@ -46,18 +47,73 @@ public class Mesh_Creator : MonoBehaviour
 
     public void AssignValues(int id)
     {
-
-        // for each section, check id
+        // for each section, check id. if ID matches, add the vertecies to a list.
         for (int a = 0; a < sectorGrid.Count; a++)
         {
             for (int b = 0; b < sectorGrid[0].Count; b++)
             {
+                
                 if (sectorGrid[a][b].id == id)
                 {
-                    // if ID matches, add the vertecies to a list.
                     for (int c = 0; c < sectorGrid[a][b].vertexPosition.Count; c++)
                     {
                         target.vertecies.Add(new Vector3(sectorGrid[a][b].vertexPosition[c].y, 0, -sectorGrid[a][b].vertexPosition[c].x));
+                    }
+                }
+            }
+        }
+
+        // for each section, check connections. if connected, add vertecies to the list.
+        for (int a = 0; a < sectorGrid.Count; a++)
+        {
+            for (int b = 0; b < sectorGrid[0].Count; b++)
+            {
+
+                if (sectorGrid[a][b].id == id)
+                {
+
+                    if (sectorGrid[a][b].connected.left == true)
+                    {
+                        /*  [1] [0][1]
+                            [3] [2][3]  */
+                        target.vertecies.Add(new Vector3(sectorGrid[a - 1][b].vertexPosition[1].y, 0, -sectorGrid[a - 1][b].vertexPosition[1].x));
+                        target.vertecies.Add(new Vector3(sectorGrid[a][b].vertexPosition[0].y, 0, -sectorGrid[a][b].vertexPosition[0].x));
+                        target.vertecies.Add(new Vector3(sectorGrid[a - 1][b].vertexPosition[3].y, 0, -sectorGrid[a - 1][b].vertexPosition[3].x));
+                        target.vertecies.Add(new Vector3(sectorGrid[a][b].vertexPosition[2].y, 0, -sectorGrid[a][b].vertexPosition[2].x));
+                    }
+
+                    if (sectorGrid[a][b].connected.right == true)
+                    {
+                        /*  [0][1] [0]
+                            [2][3] [2]  */
+                        target.vertecies.Add(new Vector3(sectorGrid[a][b].vertexPosition[1].y, 0, -sectorGrid[a][b].vertexPosition[1].x));
+                        target.vertecies.Add(new Vector3(sectorGrid[a + 1][b].vertexPosition[0].y, 0, -sectorGrid[a + 1][b].vertexPosition[0].x));
+                        target.vertecies.Add(new Vector3(sectorGrid[a][b].vertexPosition[3].y, 0, -sectorGrid[a][b].vertexPosition[3].x));
+                        target.vertecies.Add(new Vector3(sectorGrid[a + 1][b].vertexPosition[2].y, 0, -sectorGrid[a + 1][b].vertexPosition[2].x));
+                    }
+
+                    if (sectorGrid[a][b].connected.up == true)
+                    {
+                        /*  [2][3]
+                     
+                            [0][1]
+                            [2][3]  */
+                        target.vertecies.Add(new Vector3(sectorGrid[a][b + 1].vertexPosition[2].y, 0, -sectorGrid[a][b + 1].vertexPosition[2].x));
+                        target.vertecies.Add(new Vector3(sectorGrid[a][b + 1].vertexPosition[3].y, 0, -sectorGrid[a][b + 1].vertexPosition[3].x));
+                        target.vertecies.Add(new Vector3(sectorGrid[a][b].vertexPosition[0].y, 0, -sectorGrid[a][b].vertexPosition[0].x));
+                        target.vertecies.Add(new Vector3(sectorGrid[a][b].vertexPosition[1].y, 0, -sectorGrid[a][b].vertexPosition[1].x));
+                    }
+
+                    if (sectorGrid[a][b].connected.down == true)
+                    {
+                        /*  [0][1]
+                            [2][3]
+
+                            [0][1]  */
+                        target.vertecies.Add(new Vector3(sectorGrid[a][b].vertexPosition[2].y, 0, -sectorGrid[a][b].vertexPosition[2].x));
+                        target.vertecies.Add(new Vector3(sectorGrid[a][b].vertexPosition[3].y, 0, -sectorGrid[a][b].vertexPosition[3].x));
+                        target.vertecies.Add(new Vector3(sectorGrid[a][b - 1].vertexPosition[0].y, 0, -sectorGrid[a][b - 1].vertexPosition[0].x));
+                        target.vertecies.Add(new Vector3(sectorGrid[a][b - 1].vertexPosition[1].y, 0, -sectorGrid[a][b - 1].vertexPosition[1].x));
                     }
                 }
             }
@@ -68,8 +124,8 @@ public class Mesh_Creator : MonoBehaviour
         {
             /*  [0][1]
                 [2][3]  */
-            
-            target.triangles.Add(a    );
+
+            target.triangles.Add(a);
             target.triangles.Add(a + 1);
             target.triangles.Add(a + 2);
 
@@ -89,6 +145,6 @@ public class Mesh_Creator : MonoBehaviour
 
         target.gameObject.GetComponent<MeshFilter>().mesh = mesh;
         target.gameObject.GetComponent<MeshRenderer>().material = baseMaterial;
-        target.gameObject.GetComponent<MeshRenderer>().material.color = Random.ColorHSV(0f,1f,.5f,.5f,.25f,.75f,1f,1f);
+        target.gameObject.GetComponent<MeshRenderer>().material.color = Random.ColorHSV(0f, 1f, .5f, .5f, .25f, .75f, 1f, 1f);
     }
 }

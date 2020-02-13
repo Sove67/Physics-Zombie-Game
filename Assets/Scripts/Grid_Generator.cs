@@ -63,17 +63,32 @@ public class Grid_Generator : MonoBehaviour
 
         numbers.text = text;
     }
-     
-    public class Sector
+
+    public class Connection // This class holds data on which edges of a sector border another sector of the same ID.
+    {
+        public bool left { get; set; }
+        public bool right { get; set; }
+        public bool up { get; set; }
+        public bool down { get; set; }
+        public Connection(bool left, bool right, bool up, bool down)
+        {
+            this.left = left;
+            this.right = right;
+            this.up = up;
+            this.down = down;
+        }
+    }
+
+    public class Sector // This class holds data on ID, Vertexes, and Connections for one section within the sectorGrid.
     {
         public int? id { get; set; }
         public List<Vector2> vertexPosition { get; set; }
-        public bool vertexToggle { get; set; }
-        public Sector(int? id, List<Vector2> vertexPosition, bool vertexToggle)
+        public Connection connected { get; set; }
+        public Sector(int? id, List<Vector2> vertexPosition, Connection connected)
         {
             this.id = id;
             this.vertexPosition = vertexPosition;
-            this.vertexToggle = vertexToggle;
+            this.connected = connected;
         }
     }
 
@@ -85,7 +100,7 @@ public class Grid_Generator : MonoBehaviour
 
             for (int b = 0; b < gridLength; b++)
             {
-                sectorGridRow.Add(new Sector(null, new List<Vector2>{}, true));
+                sectorGridRow.Add(new Sector(null, new List<Vector2>{}, new Connection(false, false, false, false)));
             }
             sectorGrid.Add(sectorGridRow);
         }
@@ -156,34 +171,66 @@ public class Grid_Generator : MonoBehaviour
         sections.text = text;
     }
 
-    public void GridCrawler(int x, int y, int id) // Assign any cardinally connected numbers the same ID as the first, and call on each
+    public void GridCrawler(int x, int y, int id) // Assign any cardinally connected numbers the same ID as the first, marks the connection, then repeats the check.
     {
-        // Up
-        if (y - 1 > 0 && numGrid[x][y] == numGrid[x][y - 1] && sectorGrid[x][y - 1].id == null)
-        {
-            sectorGrid[x][y - 1].id = id;
-            GridCrawler(x, y - 1, id);
-        }
-
         // Left
-        if (x - 1 > 0 && numGrid[x][y] == numGrid[x - 1][y] && sectorGrid[x - 1][y].id == null)
+        if (x - 1 > 0                   && numGrid[x][y] == numGrid[x - 1][y]   && sectorGrid[x - 1][y].id == null)
         {
+            ConnectionMarker(x, y, id);
             sectorGrid[x - 1][y].id = id;
             GridCrawler(x - 1, y, id);
         }
 
-        // Down
-        if (y + 1 < numGrid[0].Count && numGrid[x][y] == numGrid[x][y + 1] && sectorGrid[x][y + 1].id == null)
+        // Right
+        if (x + 1 < numGrid.Count       && numGrid[x][y] == numGrid[x + 1][y]   && sectorGrid[x + 1][y].id == null)
         {
+
+            ConnectionMarker(x, y, id);
+            sectorGrid[x + 1][y].id = id;
+            GridCrawler(x + 1, y, id);
+        }
+
+        // Up
+        if (y + 1 < numGrid[0].Count    && numGrid[x][y] == numGrid[x][y + 1]   && sectorGrid[x][y + 1].id == null)
+        {
+            ConnectionMarker(x, y, id);
             sectorGrid[x][y + 1].id = id;
             GridCrawler(x, y + 1, id);
         }
 
-        // Right
-        if (x + 1 < numGrid.Count && numGrid[x][y] == numGrid[x + 1][y] && sectorGrid[x + 1][y].id == null)
+        // Down
+        if (y - 1 > 0                   && numGrid[x][y] == numGrid[x][y - 1]   && sectorGrid[x][y - 1].id == null)
         {
-            sectorGrid[x + 1][y].id = id;
-            GridCrawler(x + 1, y, id);
+            ConnectionMarker(x, y, id);
+            sectorGrid[x][y - 1].id = id;
+            GridCrawler(x, y - 1, id);
+        }
+    }
+
+    public void ConnectionMarker(int x, int y, int id)
+    {
+        // Left
+        if (x - 1 > 0                   && numGrid[x][y] == numGrid[x - 1][y]   && sectorGrid[x - 1][y].connected.right == false)
+        {
+            sectorGrid[x][y].connected.left = true;
+        }
+
+        // Right
+        if (x + 1 < numGrid.Count       && numGrid[x][y] == numGrid[x + 1][y]   && sectorGrid[x + 1][y].connected.left == false )
+        {
+            sectorGrid[x][y].connected.right = true;
+        }
+
+        // Up
+        if (y + 1 < numGrid[0].Count    && numGrid[x][y] == numGrid[x][y + 1]   && sectorGrid[x][y + 1].connected.down == false )
+        {
+            sectorGrid[x][y].connected.up = true;
+        }
+
+        // Down
+        if (y - 1 > 0                   && numGrid[x][y] == numGrid[x][y - 1]   && sectorGrid[x][y - 1].connected.up == false   )
+        {
+            sectorGrid[x][y].connected.down = true;
         }
     }
 }
