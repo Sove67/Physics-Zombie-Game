@@ -30,7 +30,6 @@ public class Grid_Generator : MonoBehaviour
     public GameObject meshPrefab;
 
     public List<MeshContainer> meshList = new List<MeshContainer> { };
-    public MeshContainer target;
     public Material baseMaterial;
 
     // Debugging
@@ -58,12 +57,13 @@ public class Grid_Generator : MonoBehaviour
     {
         public int? id { get; set; }
         public Vector2[] vertexPosition { get; set; }
-        public Connection connected { get; set; }
-        public Sector(int? id, Vector2[] vertexPosition, Connection connected)
+
+        public bool crawled { get; set; }
+        public Sector(int? id, Vector2[] vertexPosition, bool crawled)
         {
             this.id = id;
             this.vertexPosition = vertexPosition;
-            this.connected = connected;
+            this.crawled = crawled;
         }
     }
 
@@ -103,18 +103,6 @@ public class Grid_Generator : MonoBehaviour
         NumberGrid();
         SectionGrid();
         CreateMeshObject();
-
-        // Debugging
-        string text = "Connections: \n\n";
-        for (int y = 0; y < gridDimensions.y; y++)
-        {
-            for (int x = 0; x < gridDimensions.x; x++)
-            {
-                text = text + "Sector: (" + x + ", " + y + ")  Left: " + sectorGrid[x,y].connected.left + "  Right: " + sectorGrid[x, y].connected.right + "  Up: " + sectorGrid[x, y].connected.up + "  Down: " + sectorGrid[x, y].connected.down + "\n\n";
-            }
-        }
-
-        Debug.Log(text);
     }
 
     public void NumberGrid() // Creates a populated grid with random numbers within the "randomizerRange"
@@ -148,20 +136,19 @@ public class Grid_Generator : MonoBehaviour
         {
             for (int x = 0; x < gridDimensions.x; x++)
             {
-                sectorGrid[x, y] = new Sector(null, new Vector2[4], new Connection(false, false, false, false));
+                sectorGrid[x, y] = new Sector(null, new Vector2[4], false);
 
                 float xMod = x * (sectionSideLength + streetWidth);
                 float yMod = y * (sectionSideLength + streetWidth);
-                float shift1 = (streetWidth / 2);
-                float shift2 = -(streetWidth / 2) + sectionSideLength;
+                float shift2 = -streetWidth + sectionSideLength;
 
                 // 2 3
                 // 0 1
 
-                sectorGrid[x,y].vertexPosition[0] = (new Vector2(xMod + shift1,     yMod + shift1));
-                sectorGrid[x,y].vertexPosition[1] = (new Vector2(xMod + shift2,     yMod + shift1));
-                sectorGrid[x,y].vertexPosition[2] = (new Vector2(xMod + shift1,     yMod + shift2));
-                sectorGrid[x,y].vertexPosition[3] = (new Vector2(xMod + shift2,     yMod + shift2));
+                sectorGrid[x, y].vertexPosition[0] = (new Vector2(xMod, yMod));
+                sectorGrid[x, y].vertexPosition[1] = (new Vector2(xMod + shift2, yMod));
+                sectorGrid[x, y].vertexPosition[2] = (new Vector2(xMod, yMod + shift2));
+                sectorGrid[x, y].vertexPosition[3] = (new Vector2(xMod + shift2, yMod + shift2));
 
             }
         }
@@ -173,7 +160,7 @@ public class Grid_Generator : MonoBehaviour
                 if (sectorGrid[x, y].id == null)
                 {
                     sectorGrid[x, y].id = id;
-                    GridCrawler(x, y, id);
+                    NumberCrawler(x, y, id);
                     id++;
                 }
             }
@@ -186,198 +173,156 @@ public class Grid_Generator : MonoBehaviour
         {
             for (int x = 0; x < gridDimensions.x; x++)
             {
-                text = text + sectorGrid[x,y].id + ", ";
+                text = text + sectorGrid[x, y].id + ", ";
             }
             text = text + "\n\n";
         }
         Debug.Log(text);
     }
 
-    public void GridCrawler(int x, int y, int id) // Assign any cardinally connected numbers the same ID as the first, then repeats the check.
+    public void NumberCrawler(int x, int y, int id) // Assign any cardinally connected numbers the same ID as the first, then repeats the check.
     {
         // Left
-        if (x - 1 >= 0                  && numGrid[x,y] == numGrid[x - 1,y]     && sectorGrid[x - 1,y].id == null)
+        if (x - 1 >= 0 && numGrid[x, y] == numGrid[x - 1, y] && sectorGrid[x - 1, y].id == null)
         {
-            sectorGrid[x - 1,y].id = id;
-            GridCrawler(x - 1, y, id);
+            sectorGrid[x - 1, y].id = id;
+            NumberCrawler(x - 1, y, id);
         }
 
         // Right
-        if (x + 1 < gridDimensions.x    && numGrid[x,y] == numGrid[x + 1,y]     && sectorGrid[x + 1,y].id == null)
+        if (x + 1 < gridDimensions.x && numGrid[x, y] == numGrid[x + 1, y] && sectorGrid[x + 1, y].id == null)
         {
-            sectorGrid[x + 1,y].id = id;
-            GridCrawler(x + 1, y, id);
+            sectorGrid[x + 1, y].id = id;
+            NumberCrawler(x + 1, y, id);
         }
 
         // Up
         if (y + 1 < gridDimensions.y && numGrid[x, y] == numGrid[x, y + 1] && sectorGrid[x, y + 1].id == null)
         {
             sectorGrid[x, y + 1].id = id;
-            GridCrawler(x, y + 1, id);
+            NumberCrawler(x, y + 1, id);
         }
 
         // Down
-        if (y - 1 >= 0                  && numGrid[x, y] == numGrid[x, y - 1]   && sectorGrid[x, y - 1].id == null)
+        if (y - 1 >= 0 && numGrid[x, y] == numGrid[x, y - 1] && sectorGrid[x, y - 1].id == null)
         {
             sectorGrid[x, y - 1].id = id;
-            GridCrawler(x, y - 1, id);
+            NumberCrawler(x, y - 1, id);
         }
-
-        ConnectionMarker(x, y, id);
-    }
-
-    public void ConnectionMarker(int x, int y, int id) // Marks the connection of any cardinally connected sectors with the same ID. UP/DOWN INVERTED
-    {
-        // Left
-        if (x - 1 >= 0                  && numGrid[x,y] == numGrid[x - 1,y])
-        {
-            sectorGrid[x,y].connected.left = true;
-        }
-
-        // Right
-        if (x + 1 < gridDimensions.x    && numGrid[x,y] == numGrid[x + 1,y])
-        {
-            sectorGrid[x,y].connected.right = true;
-        }
-
-        // Up
-        if (y + 1 < gridDimensions.y && numGrid[x, y] == numGrid[x, y + 1])
-        {
-            sectorGrid[x, y].connected.up = true;
-        }
-
-        // Down
-        if (y - 1 >= 0                  && numGrid[x, y] == numGrid[x, y - 1])
-        {
-            sectorGrid[x, y].connected.down = true;
-        }
-
     }
 
     public void CreateMeshObject()
     {
-        for (int a = 0; a < sectionCount; a++)
+        for (int i = 0; i < sectionCount; i++)
         {
-            // Create the mesh and target it
+            // Create an empty mesh and assign it to "newMesh"
+            MeshContainer newMesh;
             meshList.Add(new MeshContainer(Instantiate(meshPrefab, this.transform), new List<Vector3> { }, new List<int> { }));
-            target = meshList[meshList.Count - 1];
+            newMesh = meshList[meshList.Count - 1];
+            newMesh.gameObject.name = ("Mesh (" + i + ")");
 
-            // Set Name
-            target.gameObject.name = ("Mesh (" + a + ")");
-
-            AssignValues(a);
-            SendMesh();
-
-            for (int b = 0; b < target.vertecies.Count; b++)
-            {
-                GameObject newMarker = Instantiate(marker, new Vector3(target.vertecies[b].x, 5, target.vertecies[b].z), new Quaternion(), this.transform);
-                newMarker.name = ("Mesh: " + a + " Marker: " + b);
-            }
+            //Fill the mesh
+            newMesh = AssignValues(i, newMesh);
+            SendMesh(newMesh);
         }
     }
-    
-    public void AssignValues(int id)
-    {
 
-        // for each section, check connections and ID. if connected and the ID matches, add vertecies to the list. If not connected, add a different set to the list
+    public MeshContainer AssignValues(int id, MeshContainer newMesh)
+    {
+        List<Vector3Int> startingSectors = new List<Vector3Int> { };
+
+        // for each section, check connections and ID. if connected and the ID matches
         for (int y = 0; y < gridDimensions.y; y++)
         {
             for (int x = 0; x < gridDimensions.x; x++)
             {
-                if (sectorGrid[x, y].id == id)
+                if (sectorGrid[x, y].id == id && !sectorGrid[x, y].crawled)
                 {
-                    VertexToggle enabledVertexes = new VertexToggle(true, true, true, true);
-
-                    // Single Connectors
-                    if (sectorGrid[x, y].connected.left && !sectorGrid[x, y].connected.up && !sectorGrid[x, y].connected.down)
+                    int length = 0;
+                    while (x + length < gridDimensions.x && sectorGrid[x + length, y].id == id)
                     {
-                        enabledVertexes.topLeft = false;
-                        enabledVertexes.bottomLeft = false;
+                        sectorGrid[x + length, y].crawled = true;
+                        length++;
                     }
+                    length--;
 
-                    if (sectorGrid[x, y].connected.right && !sectorGrid[x, y].connected.up && !sectorGrid[x, y].connected.down)
-                    {
-                        enabledVertexes.topRight = false;
-                        enabledVertexes.bottomRight = false;
-                    }
+                    startingSectors.Add(new Vector3Int(x, y, length));
 
-                    if (sectorGrid[x, y].connected.up && !sectorGrid[x, y].connected.left && !sectorGrid[x, y].connected.right)
-                    {
-                        enabledVertexes.topLeft = false;
-                        enabledVertexes.topRight = false;
-                    }
-
-                    if (sectorGrid[x, y].connected.down && !sectorGrid[x, y].connected.left && !sectorGrid[x, y].connected.right)
-                    {
-                        enabledVertexes.bottomLeft = false;
-                        enabledVertexes.bottomRight = false;
-                    }
-
-                    //Need to write cases for filled in areas
-
-
-                    if (enabledVertexes.topLeft)
-                    {
-                        target.vertecies.Add(new Vector3(sectorGrid[x, y].vertexPosition[2].x, 0, sectorGrid[x, y].vertexPosition[2].y));
-                    }
-
-                    if (enabledVertexes.topRight)
-                    {
-                        target.vertecies.Add(new Vector3(sectorGrid[x, y].vertexPosition[3].x, 0, sectorGrid[x, y].vertexPosition[3].y));
-                    }
-
-                    if (enabledVertexes.bottomLeft)
-                    {
-                        target.vertecies.Add(new Vector3(sectorGrid[x, y].vertexPosition[0].x, 0, sectorGrid[x, y].vertexPosition[0].y));
-                    }
-
-                    if (enabledVertexes.bottomRight)
-                    {
-                        target.vertecies.Add(new Vector3(sectorGrid[x, y].vertexPosition[1].x, 0, sectorGrid[x, y].vertexPosition[1].y));
-                    }
-
-                    /*
-                    for (int c = 0; c < sectorGrid[x, y].vertexPosition.Length; c++)
-                    {
-                        target.vertecies.Add(new Vector3(sectorGrid[x, y].vertexPosition[c].x, 0, sectorGrid[x, y].vertexPosition[c].y));
-                    }
-                    */
+                    // 2 3
+                    // 0 1
+                    newMesh.vertecies.Add(new Vector3(sectorGrid[x, y].vertexPosition[0].x, 0, sectorGrid[x, y].vertexPosition[0].y));
+                    newMesh.vertecies.Add(new Vector3(sectorGrid[x + length, y].vertexPosition[1].x, 0, sectorGrid[x + length, y].vertexPosition[1].y));
+                    newMesh.vertecies.Add(new Vector3(sectorGrid[x, y].vertexPosition[2].x, 0, sectorGrid[x, y].vertexPosition[2].y));
+                    newMesh.vertecies.Add(new Vector3(sectorGrid[x + length, y].vertexPosition[3].x, 0, sectorGrid[x + length, y].vertexPosition[3].y));
                 }
             }
         }
 
-        //need to fix this to work with new vertecies...
-        //Create triangles out of vertecies
-        for (int a = 0; a < target.vertecies.Count; a += 4)
+        for (int i = 0; i < startingSectors.Count; i++)
+        {
+            (int start, int end) = StreetCrawler(i, id, startingSectors);
+
+            if (end >= start)
+            {
+                Debug.Log("ID: " + id + "  Start: " + start + "  End: " + end);
+                newMesh.vertecies.Add(new Vector3(sectorGrid[start, startingSectors[i].y].vertexPosition[2].x, 0, sectorGrid[start, startingSectors[i].y].vertexPosition[2].y + 2 * streetWidth));
+                newMesh.vertecies.Add(new Vector3(sectorGrid[end, startingSectors[i].y].vertexPosition[3].x, 0, sectorGrid[end, startingSectors[i].y].vertexPosition[3].y + 2 * streetWidth));
+                newMesh.vertecies.Add(new Vector3(sectorGrid[start, startingSectors[i].y].vertexPosition[2].x, 0, sectorGrid[start, startingSectors[i].y].vertexPosition[2].y));
+                newMesh.vertecies.Add(new Vector3(sectorGrid[end, startingSectors[i].y].vertexPosition[3].x, 0, sectorGrid[end, startingSectors[i].y].vertexPosition[3].y));
+            }
+        }
+
+        for (int i = 0; i < newMesh.vertecies.Count; i += 4)
         {
             //   3       2 3
             // 0 1   +   0
 
-            target.triangles.Add(a + 0);
-            target.triangles.Add(a + 3);
-            target.triangles.Add(a + 1);
+            newMesh.triangles.Add(i + 0);
+            newMesh.triangles.Add(i + 3);
+            newMesh.triangles.Add(i + 1);
 
-            target.triangles.Add(a + 2);
-            target.triangles.Add(a + 3);
-            target.triangles.Add(a + 0);
+            newMesh.triangles.Add(i + 2);
+            newMesh.triangles.Add(i + 3);
+            newMesh.triangles.Add(i + 0);
         }
 
-        string text = "ID: " + id + " | # of Vertecies: " + target.vertecies.Count + " | " + "Coordinates: ";
-        for (int a = 0; a < target.vertecies.Count; a++)
-        {
-            text = text + target.vertecies[a] + ", ";
-        }
-        Debug.Log(text);
+        return (newMesh);
     }
 
-    public void SendMesh()
+    public (int,int) StreetCrawler(int i, int id, List<Vector3Int> startingSectors)
+    {
+        bool started = false;
+        int start = 0;
+        int end = 0;
+        for (int x = startingSectors[i].x; x < gridDimensions.x; x++)
+        {
+            if (startingSectors[i].y + 1 < gridDimensions.y)
+            {
+                if (sectorGrid[x, startingSectors[i].y].id == id && sectorGrid[x, startingSectors[i].y + 1].id == id && !started) 
+                { 
+                    start = x; 
+                    started = true;
+                }
+
+                Debug.Log("ID: " + id + "  X: " + x);
+                if (started && (sectorGrid[x, startingSectors[i].y].id != id || sectorGrid[x, startingSectors[i].y + 1].id != id))
+                { return (start, end); }
+
+                if (started)
+                { end = x; }
+            }
+        }
+        return (1, 0);
+    }
+
+    public void SendMesh(MeshContainer newMesh)
     {
         Mesh mesh = new Mesh();
-        mesh.vertices = target.vertecies.ToArray();
-        mesh.triangles = target.triangles.ToArray();
+        mesh.vertices = newMesh.vertecies.ToArray();
+        mesh.triangles = newMesh.triangles.ToArray();
 
-        target.gameObject.GetComponent<MeshFilter>().mesh = mesh;
-        target.gameObject.GetComponent<MeshRenderer>().material = baseMaterial;
-        target.gameObject.GetComponent<MeshRenderer>().material.color = Random.ColorHSV(0f, 1f, .5f, .5f, .25f, .75f, 1f, 1f);
+        newMesh.gameObject.GetComponent<MeshFilter>().mesh = mesh;
+        newMesh.gameObject.GetComponent<MeshRenderer>().material = baseMaterial;
+        newMesh.gameObject.GetComponent<MeshRenderer>().material.color = Random.ColorHSV(0f, 1f, .5f, .5f, .25f, .75f, 1f, 1f);
     }
 }
