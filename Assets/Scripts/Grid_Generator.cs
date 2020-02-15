@@ -7,9 +7,9 @@ public class Grid_Generator : MonoBehaviour
 {
     /*
         Note To Self:
-        While the 2d arrays are constructed x first, then y
-        the debug functions read y then x so that you can group rows together, allowing line by line console entries.
-
+        While the 2d arrays are constructed x first, then y,
+        some debug functions read y then x, and also decrease y but increase x
+        in order to output grids to console right way up
     */
 
     // Variables
@@ -110,26 +110,25 @@ public class Grid_Generator : MonoBehaviour
         {
             for (int x = 0; x < gridDimensions.x; x++)
             {
-                text = text + "Sector: (" + x + ", " + y + ") Left: " + sectorGrid[x,y].connected.left + " Right: " + sectorGrid[x, y].connected.right + " Up: " + sectorGrid[x, y].connected.up + " Down: " + sectorGrid[x, y].connected.down + "\n\n";
+                text = text + "Sector: (" + x + ", " + y + ")  Left: " + sectorGrid[x,y].connected.left + "  Right: " + sectorGrid[x, y].connected.right + "  Up: " + sectorGrid[x, y].connected.up + "  Down: " + sectorGrid[x, y].connected.down + "\n\n";
             }
         }
 
         Debug.Log(text);
     }
-    
+
     public void NumberGrid() // Creates a populated grid with random numbers within the "randomizerRange"
     {
         numGrid = new int[gridDimensions.x, gridDimensions.y];
-        for (int x = 0; x < gridDimensions.x; x++)
+        for (int y = 0; y < gridDimensions.y; y++)
         {
-            for (int y = 0; y < gridDimensions.y; y++)
+            for (int x = 0; x < gridDimensions.x; x++)
             { numGrid[x, y] = (Random.Range(0, (0 + randomizerRange))); }
         }
 
-
         // Debugging
         string text = "Numbers: \n\n";
-        for (int y = 0; y < gridDimensions.y; y++)
+        for (int y = gridDimensions.y - 1; y >= 0; y--)
         {
             for (int x = 0; x < gridDimensions.x; x++)
             {
@@ -145,28 +144,31 @@ public class Grid_Generator : MonoBehaviour
         sectorGrid = new Sector[gridDimensions.x, gridDimensions.y];
         int id = 0;
 
-        for (int x = 0; x < gridDimensions.x; x++)
+        for (int y = 0; y < gridDimensions.y; y++)
         {
-            for (int y = 0; y < gridDimensions.y; y++)
+            for (int x = 0; x < gridDimensions.x; x++)
             {
                 sectorGrid[x, y] = new Sector(null, new Vector2[4], new Connection(false, false, false, false));
 
-                var a = x * (sectionSideLength + streetWidth);
-                var b = y * (sectionSideLength + streetWidth);
+                float xMod = x * (sectionSideLength + streetWidth);
+                float yMod = y * (sectionSideLength + streetWidth);
+                float shift1 = (streetWidth / 2);
+                float shift2 = -(streetWidth / 2) + sectionSideLength;
 
-                // [0][1]
-                // [2][3]
-                sectorGrid[x,y].vertexPosition[0] = (new Vector2(a + streetWidth / 2,                        b - streetWidth / 2                     ));
-                sectorGrid[x,y].vertexPosition[1] = (new Vector2(a - streetWidth / 2 + sectionSideLength,    b - streetWidth / 2                     ));
-                sectorGrid[x,y].vertexPosition[2] = (new Vector2(a + streetWidth / 2,                        b + streetWidth / 2 - sectionSideLength ));
-                sectorGrid[x,y].vertexPosition[3] = (new Vector2(a - streetWidth / 2 + sectionSideLength,    b + streetWidth / 2 - sectionSideLength ));
+                // 2 3
+                // 0 1
+
+                sectorGrid[x,y].vertexPosition[0] = (new Vector2(xMod + shift1,     yMod + shift1));
+                sectorGrid[x,y].vertexPosition[1] = (new Vector2(xMod + shift2,     yMod + shift1));
+                sectorGrid[x,y].vertexPosition[2] = (new Vector2(xMod + shift1,     yMod + shift2));
+                sectorGrid[x,y].vertexPosition[3] = (new Vector2(xMod + shift2,     yMod + shift2));
 
             }
         }
 
-        for (int x = 0; x < gridDimensions.x; x++)
+        for (int y = 0; y < gridDimensions.y; y++)
         {
-            for (int y = 0; y < gridDimensions.y; y++)
+            for (int x = 0; x < gridDimensions.x; x++)
             {
                 if (sectorGrid[x, y].id == null)
                 {
@@ -180,7 +182,7 @@ public class Grid_Generator : MonoBehaviour
 
         // Debugging
         string text = "Sectors: \n\n";
-        for (int y = 0; y < gridDimensions.y; y++)
+        for (int y = gridDimensions.y - 1; y >= 0; y--)
         {
             for (int x = 0; x < gridDimensions.x; x++)
             {
@@ -191,64 +193,65 @@ public class Grid_Generator : MonoBehaviour
         Debug.Log(text);
     }
 
-    public void GridCrawler(int x, int y, int id) // Assign any cardinally connected numbers the same ID as the first, marks the connection, then repeats the check.
+    public void GridCrawler(int x, int y, int id) // Assign any cardinally connected numbers the same ID as the first, then repeats the check.
     {
         // Left
-        if (x - 1 > 0                   && numGrid[x,y] == numGrid[x - 1,y]   && sectorGrid[x - 1,y].id == null)
+        if (x - 1 >= 0                  && numGrid[x,y] == numGrid[x - 1,y]     && sectorGrid[x - 1,y].id == null)
         {
             sectorGrid[x - 1,y].id = id;
             GridCrawler(x - 1, y, id);
         }
 
         // Right
-        if (x + 1 < gridDimensions.x    && numGrid[x,y] == numGrid[x + 1,y]   && sectorGrid[x + 1,y].id == null)
+        if (x + 1 < gridDimensions.x    && numGrid[x,y] == numGrid[x + 1,y]     && sectorGrid[x + 1,y].id == null)
         {
             sectorGrid[x + 1,y].id = id;
             GridCrawler(x + 1, y, id);
         }
 
         // Up
-        if (y + 1 < gridDimensions.y    && numGrid[x,y] == numGrid[x,y + 1]   && sectorGrid[x,y + 1].id == null)
+        if (y + 1 < gridDimensions.y && numGrid[x, y] == numGrid[x, y + 1] && sectorGrid[x, y + 1].id == null)
         {
-            sectorGrid[x,y + 1].id = id;
+            sectorGrid[x, y + 1].id = id;
             GridCrawler(x, y + 1, id);
         }
 
         // Down
-        if (y - 1 > 0                   && numGrid[x,y] == numGrid[x,y - 1]   && sectorGrid[x,y - 1].id == null)
+        if (y - 1 >= 0                  && numGrid[x, y] == numGrid[x, y - 1]   && sectorGrid[x, y - 1].id == null)
         {
-            sectorGrid[x,y - 1].id = id;
+            sectorGrid[x, y - 1].id = id;
             GridCrawler(x, y - 1, id);
         }
 
         ConnectionMarker(x, y, id);
     }
 
-    public void ConnectionMarker(int x, int y, int id)
+    public void ConnectionMarker(int x, int y, int id) // Marks the connection of any cardinally connected sectors with the same ID. UP/DOWN INVERTED
     {
         // Left
-        if (x - 1 > 0                   && numGrid[x,y] == numGrid[x - 1,y]   && sectorGrid[x - 1,y].connected.right == false)
+        if (x - 1 >= 0                  && numGrid[x,y] == numGrid[x - 1,y])
         {
             sectorGrid[x,y].connected.left = true;
         }
 
         // Right
-        if (x + 1 < gridDimensions.x    && numGrid[x,y] == numGrid[x + 1,y]   && sectorGrid[x + 1,y].connected.left == false )
+        if (x + 1 < gridDimensions.x    && numGrid[x,y] == numGrid[x + 1,y])
         {
             sectorGrid[x,y].connected.right = true;
         }
 
         // Up
-        if (y + 1 < gridDimensions.y    && numGrid[x,y] == numGrid[x,y + 1]   && sectorGrid[x,y + 1].connected.down == false )
+        if (y + 1 < gridDimensions.y && numGrid[x, y] == numGrid[x, y + 1])
         {
-            sectorGrid[x,y].connected.up = true;
+            sectorGrid[x, y].connected.up = true;
         }
 
         // Down
-        if (y - 1 > 0                   && numGrid[x,y] == numGrid[x,y - 1]   && sectorGrid[x,y - 1].connected.up == false   )
+        if (y - 1 >= 0                  && numGrid[x, y] == numGrid[x, y - 1])
         {
-            sectorGrid[x,y].connected.down = true;
+            sectorGrid[x, y].connected.down = true;
         }
+
     }
 
     public void CreateMeshObject()
@@ -263,10 +266,11 @@ public class Grid_Generator : MonoBehaviour
             target.gameObject.name = ("Mesh (" + a + ")");
 
             AssignValues(a);
+            SendMesh();
 
             for (int b = 0; b < target.vertecies.Count; b++)
             {
-                GameObject newMarker = Instantiate(marker, new Vector3(target.vertecies[b].x, 5, target.vertecies[b].z), new Quaternion());
+                GameObject newMarker = Instantiate(marker, new Vector3(target.vertecies[b].x, 5, target.vertecies[b].z), new Quaternion(), this.transform);
                 newMarker.name = ("Mesh: " + a + " Marker: " + b);
             }
         }
@@ -274,81 +278,89 @@ public class Grid_Generator : MonoBehaviour
     
     public void AssignValues(int id)
     {
-        VertexToggle enabledVertexes = new VertexToggle(true, true, true, true);
 
         // for each section, check connections and ID. if connected and the ID matches, add vertecies to the list. If not connected, add a different set to the list
-        for (int x = 0; x < gridDimensions.x; x++)
+        for (int y = 0; y < gridDimensions.y; y++)
         {
-            for (int y = 0; y < gridDimensions.x; y++)
+            for (int x = 0; x < gridDimensions.x; x++)
             {
-
                 if (sectorGrid[x, y].id == id)
                 {
+                    VertexToggle enabledVertexes = new VertexToggle(true, true, true, true);
 
-                    if (sectorGrid[x, y].connected.left == true)
+                    // Single Connectors
+                    if (sectorGrid[x, y].connected.left && !sectorGrid[x, y].connected.up && !sectorGrid[x, y].connected.down)
                     {
                         enabledVertexes.topLeft = false;
                         enabledVertexes.bottomLeft = false;
                     }
 
-                    if (sectorGrid[x, y].connected.right == true)
+                    if (sectorGrid[x, y].connected.right && !sectorGrid[x, y].connected.up && !sectorGrid[x, y].connected.down)
                     {
                         enabledVertexes.topRight = false;
                         enabledVertexes.bottomRight = false;
                     }
 
-                    if (sectorGrid[x, y].connected.up == true)
+                    if (sectorGrid[x, y].connected.up && !sectorGrid[x, y].connected.left && !sectorGrid[x, y].connected.right)
                     {
                         enabledVertexes.topLeft = false;
                         enabledVertexes.topRight = false;
                     }
 
-                    if (sectorGrid[x, y].connected.down == true)
+                    if (sectorGrid[x, y].connected.down && !sectorGrid[x, y].connected.left && !sectorGrid[x, y].connected.right)
                     {
                         enabledVertexes.bottomLeft = false;
                         enabledVertexes.bottomRight = false;
                     }
+
+                    //Need to write cases for filled in areas
+
 
                     if (enabledVertexes.topLeft)
                     {
-                        target.vertecies.Add(new Vector3(sectorGrid[x, y].vertexPosition[0].y, 0, sectorGrid[x, y].vertexPosition[0].x));
-                    }
-                    if (enabledVertexes.topRight)
-                    {
-                        target.vertecies.Add(new Vector3(sectorGrid[x, y].vertexPosition[1].y, 0, sectorGrid[x, y].vertexPosition[1].x));
-                    }
-                    if (enabledVertexes.bottomLeft)
-                    {
-                        target.vertecies.Add(new Vector3(sectorGrid[x, y].vertexPosition[2].y, 0, sectorGrid[x, y].vertexPosition[2].x));
-                    }
-                    if (enabledVertexes.bottomRight)
-                    {
-                        target.vertecies.Add(new Vector3(sectorGrid[x, y].vertexPosition[3].y, 0, sectorGrid[x, y].vertexPosition[3].x));
+                        target.vertecies.Add(new Vector3(sectorGrid[x, y].vertexPosition[2].x, 0, sectorGrid[x, y].vertexPosition[2].y));
                     }
 
-                    //for (int c = 0; c < sectorGrid[x, y].vertexPosition.Count; c++)
-                    //{
-                    //    target.vertecies.Add(new Vector3(sectorGrid[x, y].vertexPosition[c].y, 0, -sectorGrid[x, y].vertexPosition[c].x));
-                    //}
+                    if (enabledVertexes.topRight)
+                    {
+                        target.vertecies.Add(new Vector3(sectorGrid[x, y].vertexPosition[3].x, 0, sectorGrid[x, y].vertexPosition[3].y));
+                    }
+
+                    if (enabledVertexes.bottomLeft)
+                    {
+                        target.vertecies.Add(new Vector3(sectorGrid[x, y].vertexPosition[0].x, 0, sectorGrid[x, y].vertexPosition[0].y));
+                    }
+
+                    if (enabledVertexes.bottomRight)
+                    {
+                        target.vertecies.Add(new Vector3(sectorGrid[x, y].vertexPosition[1].x, 0, sectorGrid[x, y].vertexPosition[1].y));
+                    }
+
+                    /*
+                    for (int c = 0; c < sectorGrid[x, y].vertexPosition.Length; c++)
+                    {
+                        target.vertecies.Add(new Vector3(sectorGrid[x, y].vertexPosition[c].x, 0, sectorGrid[x, y].vertexPosition[c].y));
+                    }
+                    */
                 }
             }
         }
 
+        //need to fix this to work with new vertecies...
         //Create triangles out of vertecies
         for (int a = 0; a < target.vertecies.Count; a += 4)
         {
-            // [0][1]
-            // [2][3]
+            //   3       2 3
+            // 0 1   +   0
 
-            target.triangles.Add(a);
-            target.triangles.Add(a + 1);
-            target.triangles.Add(a + 2);
-
-            target.triangles.Add(a + 1);
+            target.triangles.Add(a + 0);
             target.triangles.Add(a + 3);
-            target.triangles.Add(a + 2);
-        }
+            target.triangles.Add(a + 1);
 
+            target.triangles.Add(a + 2);
+            target.triangles.Add(a + 3);
+            target.triangles.Add(a + 0);
+        }
 
         string text = "ID: " + id + " | # of Vertecies: " + target.vertecies.Count + " | " + "Coordinates: ";
         for (int a = 0; a < target.vertecies.Count; a++)
@@ -356,8 +368,6 @@ public class Grid_Generator : MonoBehaviour
             text = text + target.vertecies[a] + ", ";
         }
         Debug.Log(text);
-
-        SendMesh();
     }
 
     public void SendMesh()

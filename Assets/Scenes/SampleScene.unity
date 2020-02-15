@@ -358,7 +358,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0a1ef90a9ed29d84cb408be74681259d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gridLength: 3
+  gridDimensions: {x: 5, y: 5}
   randomizerRange: 3
   sectionSideLength: 15
   streetWidth: 2
@@ -366,7 +366,7 @@ MonoBehaviour:
   meshPrefab: {fileID: 1460707909255484210, guid: 592494b188db2f944a845c7b47257ca4,
     type: 3}
   baseMaterial: {fileID: 2100000, guid: 8d5f000aeec6d024daf181f00a5f5e44, type: 2}
-  debug: {fileID: 0}
+  marker: {fileID: 907787778942687406, guid: 623cd6abb4ff10b4a9b838c3964ffa2a, type: 3}
 --- !u!4 &802607990
 Transform:
   m_ObjectHideFlags: 0
