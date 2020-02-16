@@ -257,7 +257,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 534669902}
   m_LocalRotation: {x: 0.5, y: 0, z: 0, w: 0.8660254}
-  m_LocalPosition: {x: 200, y: 260, z: -430}
+  m_LocalPosition: {x: 210, y: 275, z: -15}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -338,7 +338,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 802607990}
-  - component: {fileID: 802607988}
+  - component: {fileID: 802607987}
   m_Layer: 0
   m_Name: Mesh Parent
   m_TagString: Untagged
@@ -346,7 +346,7 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &802607988
+--- !u!114 &802607987
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -355,18 +355,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 802607986}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0a1ef90a9ed29d84cb408be74681259d, type: 3}
+  m_Script: {fileID: 11500000, guid: 3eff3d18887261942a8fc750581a3cd2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gridDimensions: {x: 5, y: 5}
-  randomizerRange: 3
-  sectionSideLength: 15
-  streetWidth: 2
-  sectionCount: 0
+  Grid_Generator: {fileID: 1117252614}
   meshPrefab: {fileID: 1460707909255484210, guid: 592494b188db2f944a845c7b47257ca4,
     type: 3}
   baseMaterial: {fileID: 2100000, guid: 8d5f000aeec6d024daf181f00a5f5e44, type: 2}
-  marker: {fileID: 907787778942687406, guid: 623cd6abb4ff10b4a9b838c3964ffa2a, type: 3}
 --- !u!4 &802607990
 Transform:
   m_ObjectHideFlags: 0
@@ -479,3 +474,53 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!1 &1117252613
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1117252615}
+  - component: {fileID: 1117252614}
+  m_Layer: 0
+  m_Name: Script Parent
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1117252614
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1117252613}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a1ef90a9ed29d84cb408be74681259d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Mesh_Creator: {fileID: 802607987}
+  gridDimensions: {x: 25, y: 25}
+  randomizerRange: 3
+  sectionSideLength: 15
+  streetWidth: 5
+  defaultHeight: 20
+  sectionCount: 0
+--- !u!4 &1117252615
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1117252613}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 298.93564, y: 74.99895, z: 199.89066}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 5
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}

@@ -5,37 +5,21 @@ using UnityEngine.UI;
 
 public class Grid_Generator : MonoBehaviour
 {
-    /*
-        Note To Self:
-        While the 2d arrays are constructed x first, then y,
-        some debug functions read y then x, and also decrease y but increase x
-        in order to output grids to console right way up
-    */
-
     // Variables
+    // Script Link
+    public Mesh_Creator Mesh_Creator;
 
-    // Num Grid
+    // Grid Parameters
     public Vector2Int gridDimensions;
     public int randomizerRange;
-    private int[,] numGrid;
-
-    // Vertex Grid
     public int sectionSideLength;
     public int streetWidth;
+    public int defaultHeight;
 
-    // Sector Grid
+    // Num Grid
+    private int[,] numGrid;
     public Sector[,] sectorGrid;
     public int sectionCount;
-
-    public GameObject meshPrefab;
-
-    public List<MeshContainer> meshList = new List<MeshContainer> { };
-    public Material baseMaterial;
-
-    // Debugging
-    public GameObject marker;
-
-
 
     // Classes
     public class Connection // This class holds data on which edges of a sector border another sector of the same ID.
@@ -57,52 +41,25 @@ public class Grid_Generator : MonoBehaviour
     {
         public int? id { get; set; }
         public Vector2[] vertexPosition { get; set; }
-
+        public Connection connected { get; set; }
         public bool crawled { get; set; }
-        public Sector(int? id, Vector2[] vertexPosition, bool crawled)
+
+        public Sector(int? id, Vector2[] vertexPosition, bool crawled, Connection connected)
         {
             this.id = id;
             this.vertexPosition = vertexPosition;
             this.crawled = crawled;
+            this.connected = connected;
         }
     }
-
-    public class MeshContainer
-    {
-        public GameObject gameObject { get; set; }
-        public List<Vector3> vertecies { get; set; }
-        public List<int> triangles { get; set; }
-        public MeshContainer(GameObject gameObject, List<Vector3> vertecies, List<int> triangles)
-        {
-            this.gameObject = gameObject;
-            this.vertecies = vertecies;
-            this.triangles = triangles;
-        }
-    }
-
-    public class VertexToggle
-    {
-        public bool topLeft { get; set; }
-        public bool topRight { get; set; }
-        public bool bottomLeft { get; set; }
-        public bool bottomRight { get; set; }
-        public VertexToggle(bool topLeft, bool topRight, bool bottomLeft, bool bottomRight)
-        {
-            this.topLeft = topLeft;
-            this.topRight = topRight;
-            this.bottomLeft = bottomLeft;
-            this.bottomRight = bottomRight;
-        }
-    }
-
-
 
     // Functions
     public void Start()
     {
         NumberGrid();
         SectionGrid();
-        CreateMeshObject();
+
+        Mesh_Creator.CreateMeshObject();
     }
 
     public void NumberGrid() // Creates a populated grid with random numbers within the "randomizerRange"
@@ -136,19 +93,18 @@ public class Grid_Generator : MonoBehaviour
         {
             for (int x = 0; x < gridDimensions.x; x++)
             {
-                sectorGrid[x, y] = new Sector(null, new Vector2[4], false);
+                sectorGrid[x, y] = new Sector(null, new Vector2[4], false, new Connection(false, false, false, false));
 
                 float xMod = x * (sectionSideLength + streetWidth);
                 float yMod = y * (sectionSideLength + streetWidth);
-                float shift2 = -streetWidth + sectionSideLength;
 
                 // 2 3
                 // 0 1
 
-                sectorGrid[x, y].vertexPosition[0] = (new Vector2(xMod, yMod));
-                sectorGrid[x, y].vertexPosition[1] = (new Vector2(xMod + shift2, yMod));
-                sectorGrid[x, y].vertexPosition[2] = (new Vector2(xMod, yMod + shift2));
-                sectorGrid[x, y].vertexPosition[3] = (new Vector2(xMod + shift2, yMod + shift2));
+                sectorGrid[x, y].vertexPosition[0] = (new Vector2(xMod,                     yMod));
+                sectorGrid[x, y].vertexPosition[1] = (new Vector2(xMod + sectionSideLength, yMod));
+                sectorGrid[x, y].vertexPosition[2] = (new Vector2(xMod,                     yMod + sectionSideLength));
+                sectorGrid[x, y].vertexPosition[3] = (new Vector2(xMod + sectionSideLength, yMod + sectionSideLength));
 
             }
         }
@@ -211,118 +167,30 @@ public class Grid_Generator : MonoBehaviour
         }
     }
 
-    public void CreateMeshObject()
+    public void ConnectionMarker(int x, int y, int id) // Marks the connection of any cardinally connected sectors with the same ID. UP/DOWN INVERTED
     {
-        for (int i = 0; i < sectionCount; i++)
+        // Left
+        if (x - 1 >= 0 && numGrid[x, y] == numGrid[x - 1, y])
         {
-            // Create an empty mesh and assign it to "newMesh"
-            MeshContainer newMesh;
-            meshList.Add(new MeshContainer(Instantiate(meshPrefab, this.transform), new List<Vector3> { }, new List<int> { }));
-            newMesh = meshList[meshList.Count - 1];
-            newMesh.gameObject.name = ("Mesh (" + i + ")");
-
-            //Fill the mesh
-            newMesh = AssignValues(i, newMesh);
-            SendMesh(newMesh);
-        }
-    }
-
-    public MeshContainer AssignValues(int id, MeshContainer newMesh)
-    {
-        List<Vector3Int> startingSectors = new List<Vector3Int> { };
-
-        // for each section, check connections and ID. if connected and the ID matches
-        for (int y = 0; y < gridDimensions.y; y++)
-        {
-            for (int x = 0; x < gridDimensions.x; x++)
-            {
-                if (sectorGrid[x, y].id == id && !sectorGrid[x, y].crawled)
-                {
-                    int length = 0;
-                    while (x + length < gridDimensions.x && sectorGrid[x + length, y].id == id)
-                    {
-                        sectorGrid[x + length, y].crawled = true;
-                        length++;
-                    }
-                    length--;
-
-                    startingSectors.Add(new Vector3Int(x, y, length));
-
-                    // 2 3
-                    // 0 1
-                    newMesh.vertecies.Add(new Vector3(sectorGrid[x, y].vertexPosition[0].x, 0, sectorGrid[x, y].vertexPosition[0].y));
-                    newMesh.vertecies.Add(new Vector3(sectorGrid[x + length, y].vertexPosition[1].x, 0, sectorGrid[x + length, y].vertexPosition[1].y));
-                    newMesh.vertecies.Add(new Vector3(sectorGrid[x, y].vertexPosition[2].x, 0, sectorGrid[x, y].vertexPosition[2].y));
-                    newMesh.vertecies.Add(new Vector3(sectorGrid[x + length, y].vertexPosition[3].x, 0, sectorGrid[x + length, y].vertexPosition[3].y));
-                }
-            }
+            sectorGrid[x, y].connected.left = true;
         }
 
-        for (int i = 0; i < startingSectors.Count; i++)
+        // Right
+        if (x + 1 < gridDimensions.x && numGrid[x, y] == numGrid[x + 1, y])
         {
-            (int start, int end) = StreetCrawler(i, id, startingSectors);
-
-            if (end >= start)
-            {
-                Debug.Log("ID: " + id + "  Start: " + start + "  End: " + end);
-                newMesh.vertecies.Add(new Vector3(sectorGrid[start, startingSectors[i].y].vertexPosition[2].x, 0, sectorGrid[start, startingSectors[i].y].vertexPosition[2].y + 2 * streetWidth));
-                newMesh.vertecies.Add(new Vector3(sectorGrid[end, startingSectors[i].y].vertexPosition[3].x, 0, sectorGrid[end, startingSectors[i].y].vertexPosition[3].y + 2 * streetWidth));
-                newMesh.vertecies.Add(new Vector3(sectorGrid[start, startingSectors[i].y].vertexPosition[2].x, 0, sectorGrid[start, startingSectors[i].y].vertexPosition[2].y));
-                newMesh.vertecies.Add(new Vector3(sectorGrid[end, startingSectors[i].y].vertexPosition[3].x, 0, sectorGrid[end, startingSectors[i].y].vertexPosition[3].y));
-            }
+            sectorGrid[x, y].connected.right = true;
         }
 
-        for (int i = 0; i < newMesh.vertecies.Count; i += 4)
+        // Up
+        if (y + 1 < gridDimensions.y && numGrid[x, y] == numGrid[x, y + 1])
         {
-            //   3       2 3
-            // 0 1   +   0
-
-            newMesh.triangles.Add(i + 0);
-            newMesh.triangles.Add(i + 3);
-            newMesh.triangles.Add(i + 1);
-
-            newMesh.triangles.Add(i + 2);
-            newMesh.triangles.Add(i + 3);
-            newMesh.triangles.Add(i + 0);
+            sectorGrid[x, y].connected.up = true;
         }
 
-        return (newMesh);
-    }
-
-    public (int,int) StreetCrawler(int i, int id, List<Vector3Int> startingSectors)
-    {
-        bool started = false;
-        int start = 0;
-        int end = 0;
-        for (int x = startingSectors[i].x; x < gridDimensions.x; x++)
+        // Down
+        if (y - 1 >= 0 && numGrid[x, y] == numGrid[x, y - 1])
         {
-            if (startingSectors[i].y + 1 < gridDimensions.y)
-            {
-                if (sectorGrid[x, startingSectors[i].y].id == id && sectorGrid[x, startingSectors[i].y + 1].id == id && !started) 
-                { 
-                    start = x; 
-                    started = true;
-                }
-
-                Debug.Log("ID: " + id + "  X: " + x);
-                if (started && (sectorGrid[x, startingSectors[i].y].id != id || sectorGrid[x, startingSectors[i].y + 1].id != id))
-                { return (start, end); }
-
-                if (started)
-                { end = x; }
-            }
+            sectorGrid[x, y].connected.down = true;
         }
-        return (1, 0);
-    }
-
-    public void SendMesh(MeshContainer newMesh)
-    {
-        Mesh mesh = new Mesh();
-        mesh.vertices = newMesh.vertecies.ToArray();
-        mesh.triangles = newMesh.triangles.ToArray();
-
-        newMesh.gameObject.GetComponent<MeshFilter>().mesh = mesh;
-        newMesh.gameObject.GetComponent<MeshRenderer>().material = baseMaterial;
-        newMesh.gameObject.GetComponent<MeshRenderer>().material.color = Random.ColorHSV(0f, 1f, .5f, .5f, .25f, .75f, 1f, 1f);
     }
 }
