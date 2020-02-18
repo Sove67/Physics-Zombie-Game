@@ -4,8 +4,7 @@ using UnityEngine;
 
 public class Mesh_Creator : MonoBehaviour
 {
-    // Connection
-
+    // Variables
     // Script Link
     public Grid_Generator Grid_Generator;
 
@@ -44,7 +43,7 @@ public class Mesh_Creator : MonoBehaviour
     }
 
     // Functions
-    public void CreateMeshObject()
+    public void CreateMeshes()
     {
         for (int i = 0; i < Grid_Generator.sectionCount; i++)
         {

@@ -8,13 +8,13 @@ public class Grid_Generator : MonoBehaviour
     // Variables
     // Script Link
     public Mesh_Creator Mesh_Creator;
+    public Building_Creator Building_Creator;
 
     // Grid Parameters
     public Vector2Int gridDimensions;
     public int randomizerRange;
     public int sectionSideLength;
     public int streetWidth;
-    public int defaultHeight;
 
     // Num Grid
     private int[,] numGrid;
@@ -41,8 +41,8 @@ public class Grid_Generator : MonoBehaviour
     {
         public int? id { get; set; }
         public Vector2[] vertexPosition { get; set; }
-        public Connection connected { get; set; }
         public bool crawled { get; set; }
+        public Connection connected { get; set; }
 
         public Sector(int? id, Vector2[] vertexPosition, bool crawled, Connection connected)
         {
@@ -59,7 +59,8 @@ public class Grid_Generator : MonoBehaviour
         NumberGrid();
         SectionGrid();
 
-        Mesh_Creator.CreateMeshObject();
+        Mesh_Creator.CreateMeshes();
+        Building_Creator.CreateBuildings(sectionCount, gridDimensions, sectorGrid, sectionSideLength, streetWidth);
     }
 
     public void NumberGrid() // Creates a populated grid with random numbers within the "randomizerRange"
@@ -119,6 +120,7 @@ public class Grid_Generator : MonoBehaviour
                     NumberCrawler(x, y, id);
                     id++;
                 }
+                ConnectionMarker(x, y, id);
             }
         }
         sectionCount = id;
@@ -192,5 +194,22 @@ public class Grid_Generator : MonoBehaviour
         {
             sectorGrid[x, y].connected.down = true;
         }
+    }
+
+    public static bool SameConnection(Connection firstConnection, Connection secondConnection) // A custom 'equals' checker for the connection class. Taken from https://answers.unity.com/questions/1325595/check-if-two-instances-have-matching-values.html
+    {
+        if (firstConnection.left != secondConnection.left)
+        { return false; }
+
+        else if (firstConnection.right != secondConnection.right)
+        { return false; }
+
+        else if (firstConnection.up != secondConnection.up)
+        { return false; }
+
+        else if (firstConnection.down != secondConnection.down)
+        { return false; }
+
+        return true;
     }
 }
