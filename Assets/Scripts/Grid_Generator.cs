@@ -42,9 +42,9 @@ public class Grid_Generator : MonoBehaviour
         public int? id { get; set; }
         public Vector2[] vertexPosition { get; set; }
         public bool crawled { get; set; }
-        public Connection connected { get; set; }
+        public bool[] connected { get; set; }
 
-        public Sector(int? id, Vector2[] vertexPosition, bool crawled, Connection connected)
+        public Sector(int? id, Vector2[] vertexPosition, bool crawled, bool[] connected)
         {
             this.id = id;
             this.vertexPosition = vertexPosition;
@@ -94,7 +94,7 @@ public class Grid_Generator : MonoBehaviour
         {
             for (int x = 0; x < gridDimensions.x; x++)
             {
-                sectorGrid[x, y] = new Sector(null, new Vector2[4], false, new Connection(false, false, false, false));
+                sectorGrid[x, y] = new Sector(null, new Vector2[4], false, new bool[4] { false, false, false, false });
 
                 float xMod = x * (sectionSideLength + streetWidth);
                 float yMod = y * (sectionSideLength + streetWidth);
@@ -173,27 +173,16 @@ public class Grid_Generator : MonoBehaviour
     {
         // Left
         if (x - 1 >= 0 && numGrid[x, y] == numGrid[x - 1, y])
-        {
-            sectorGrid[x, y].connected.left = true;
-        }
-
-        // Right
-        if (x + 1 < gridDimensions.x && numGrid[x, y] == numGrid[x + 1, y])
-        {
-            sectorGrid[x, y].connected.right = true;
-        }
-
+        { sectorGrid[x, y].connected[0] = true; }
         // Up
         if (y + 1 < gridDimensions.y && numGrid[x, y] == numGrid[x, y + 1])
-        {
-            sectorGrid[x, y].connected.up = true;
-        }
-
+        { sectorGrid[x, y].connected[1] = true; }
+        // Right
+        if (x + 1 < gridDimensions.x && numGrid[x, y] == numGrid[x + 1, y])
+        { sectorGrid[x, y].connected[2] = true; }
         // Down
         if (y - 1 >= 0 && numGrid[x, y] == numGrid[x, y - 1])
-        {
-            sectorGrid[x, y].connected.down = true;
-        }
+        { sectorGrid[x, y].connected[3] = true; }
     }
 
     public static bool SameConnection(Connection firstConnection, Connection secondConnection) // A custom 'equals' checker for the connection class. Taken from https://answers.unity.com/questions/1325595/check-if-two-instances-have-matching-values.html
