@@ -60,7 +60,7 @@ public class Grid_Generator : MonoBehaviour
         SectionGrid();
 
         Mesh_Creator.CreateMeshes();
-        Building_Creator.CreateBuildings(sectionCount, gridDimensions, sectorGrid, sectionSideLength, streetWidth);
+        Building_Creator.CreateCityBlock(sectionCount, gridDimensions, sectorGrid, sectionSideLength, streetWidth);
     }
 
     public void NumberGrid() // Creates a populated grid with random numbers within the "randomizerRange"
