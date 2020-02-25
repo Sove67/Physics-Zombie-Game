@@ -43,10 +43,10 @@ public class Building_Creator : MonoBehaviour
 
         Vector3[] baseCoords = new Vector3[]
         {
-            new Vector3(-streetWidth/2,                                                       0, -streetWidth/2                                                      ),
-            new Vector3(gridDimensions.x * (sectionSideLength + streetWidth) - streetWidth/2, 0, -streetWidth/2                                                      ),
-            new Vector3(-streetWidth/2,                                                       0, gridDimensions.x * (sectionSideLength + streetWidth) - streetWidth/2),
-            new Vector3(gridDimensions.x * (sectionSideLength + streetWidth) - streetWidth/2, 0, gridDimensions.x * (sectionSideLength + streetWidth) - streetWidth/2),
+            new Vector3(-streetWidth/2,                                                       2, -streetWidth/2                                                      ),
+            new Vector3(gridDimensions.x * (sectionSideLength + streetWidth) - streetWidth/2, 2, -streetWidth/2                                                      ),
+            new Vector3(-streetWidth/2,                                                       2, gridDimensions.x * (sectionSideLength + streetWidth) - streetWidth/2),
+            new Vector3(gridDimensions.x * (sectionSideLength + streetWidth) - streetWidth/2, 2, gridDimensions.x * (sectionSideLength + streetWidth) - streetWidth/2),
         };
         int[] triangles = new int[] {0, 3, 1,     2, 3, 0};
 
