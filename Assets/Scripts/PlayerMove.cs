@@ -5,19 +5,23 @@ using UnityEngine;
 
 public class PlayerMove : MonoBehaviour
 {
+    // Player 
     private CharacterController charControl;
     public Transform player;
-    public Transform model;
     public Transform playerXRot;
-    public Animator animator;
-    public float localRot;
-    public float TorsoRot;
-    public float modelRot;
-    public int lookMargin;
-    public float moveMulti = 40f;
-    public float jumpMulti = 20f;
-    public float GravMulti = 20f;
+
+    // Movement
     private Vector3 moveDirection = Vector3.zero;
+    private float localRot;
+    private float modelRot;
+    public float moveMulti;
+    public float jumpMulti;
+    public float GravMulti;
+
+    // Animation
+    public Transform model;
+    public Animator animator;
+    private float torsoRot;
 
     private void Awake()
     {
@@ -36,8 +40,7 @@ public class PlayerMove : MonoBehaviour
 
         if (Input.GetAxisRaw("Horizontal") != 0 || Input.GetAxisRaw("Vertical") != 0)
         { localRot = ((Mathf.Atan2(localInput.x, localInput.z) / Mathf.PI * 180) + 360) % 360; }
-
-        TorsoRot = ((localRot - playerXRot.rotation.eulerAngles.y) + 360 + 90) % 360;
+        
 
         if (charControl.isGrounded)
         {
@@ -53,24 +56,48 @@ public class PlayerMove : MonoBehaviour
 
     public void Animate()
     {
-        float oldModelRot = modelRot;
+        torsoRot = ((playerXRot.rotation.eulerAngles.y - localRot + 180 + 360) % 360 - 180);
 
-        if (((TorsoRot + 1) % 360) - 1 >= (-lookMargin) % 360 && ((TorsoRot + 1) % 360) - 1 < (180 + lookMargin) % 360)
+        Debug.Log("");
+        Debug.Log(torsoRot);
+        Debug.Log(playerXRot.rotation.eulerAngles.y);
+        Debug.Log(localRot);
+        // If Moving Forward
+        if (Input.GetAxisRaw("Vertical") > 0)
         {
             animator.SetBool("Backpedal", false);
+            animator.SetBool("Moving", true);
             modelRot = localRot;
             model.transform.rotation = Quaternion.Euler(0, modelRot, 0);
         }
-        else
+        // If Moving Backwards
+        else if (Input.GetAxisRaw("Vertical") < 0)
         {
             animator.SetBool("Backpedal", true);
+            animator.SetBool("Moving", true);
             modelRot = localRot - 180;
-            model.transform.rotation = Quaternion.Euler(0, modelRot - 180, 0);
+            model.transform.rotation = Quaternion.Euler(0, modelRot, 0);
+            torsoRot = ((torsoRot + 360) % 360)-180;
+        }
+        // If Strafing
+        else if (Input.GetAxisRaw("Horizontal") != 0)
+        {
+            animator.SetBool("Backpedal", false);
+            animator.SetBool("Moving", true);
+            modelRot = localRot;
+            model.transform.rotation = Quaternion.Euler(0, modelRot, 0);
+        }
+        // Otherwise Not Moving
+        else
+        {
+            animator.SetBool("Backpedal", false);
+            animator.SetBool("Moving", false);
+            modelRot = torsoRot;
+            model.transform.rotation = Quaternion.Euler(0, modelRot, 0);
+            torsoRot = 0;
         }
 
-        if (Input.GetAxisRaw("Horizontal") != 0 || Input.GetAxisRaw("Vertical") != 0)
-        { animator.SetBool("Moving", true); }
-        else { animator.SetBool("Moving", false); }
-        // animate torso turn to modelRot from old modelRot
+
+        animator.Play(0, 1, (0.5f - (torsoRot / 180)));
     }
 }

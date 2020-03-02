@@ -1037,10 +1037,10 @@ Animator:
   m_GameObject: {fileID: 8296172667627947480}
   m_Enabled: 1
   m_Avatar: {fileID: 9000000, guid: b587f0ed39b3d9b4e898ff030370bfcf, type: 3}
-  m_Controller: {fileID: 9100000, guid: 859cf97689df3014ab34c143b70feb34, type: 2}
+  m_Controller: {fileID: 9100000, guid: 20fa9e0aaaad7bf419a01fb973ad6aff, type: 2}
   m_CullingMode: 1
   m_UpdateMode: 0
-  m_ApplyRootMotion: 1
+  m_ApplyRootMotion: 0
   m_LinearVelocityBlending: 0
   m_WarningMessage: 
   m_HasTransformHierarchy: 1
@@ -1583,7 +1583,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6772351494182126324}
-  m_LocalRotation: {x: -0.08200641, y: 0.015593986, z: 0.06522865, w: 0.99437267}
+  m_LocalRotation: {x: -0.08200642, y: 0.015593986, z: 0.065228656, w: 0.99437267}
   m_LocalPosition: {x: -0.0000000013667159, y: 0.0028912777, z: -6.519258e-11}
   m_LocalScale: {x: 0.99999994, y: 1, z: 1}
   m_Children:
@@ -2076,16 +2076,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   player: {fileID: 8809123253947547313}
-  model: {fileID: 5006512736907179979}
   playerXRot: {fileID: 8809123254890424392}
-  animator: {fileID: 3166231814449044145}
-  localRot: 0
-  TorsoRot: 0
-  modelRot: 0
-  lookMargin: 2
   moveMulti: 40
   jumpMulti: 30
   GravMulti: 100
+  model: {fileID: 5006512736907179979}
+  animator: {fileID: 3166231814449044145}
 --- !u!136 &8809123253947547316
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -2136,8 +2132,8 @@ GameObject:
   - component: {fileID: 8809123253947547318}
   - component: {fileID: 8809123253947547316}
   - component: {fileID: 8809123253947547317}
-  - component: {fileID: 8809123253947547315}
   - component: {fileID: 8809123253947547312}
+  - component: {fileID: 8809123253947547315}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
