@@ -36,7 +36,7 @@ public class PlayerMove : MonoBehaviour
     public void Movement()
     {
         Vector3 moveInput = new Vector3(Input.GetAxis("Horizontal"), Convert.ToInt32(Input.GetButton("Jump")), Input.GetAxis("Vertical"));
-        Vector3 localInput = playerXRot.TransformDirection(moveInput.x, 0, moveInput.z);
+        Vector3 localInput = playerXRot.TransformDirection(moveInput.x, moveInput.y, moveInput.z);
 
         if (Input.GetAxisRaw("Horizontal") != 0 || Input.GetAxisRaw("Vertical") != 0)
         { localRot = ((Mathf.Atan2(localInput.x, localInput.z) / Mathf.PI * 180) + 360) % 360; }
@@ -58,10 +58,6 @@ public class PlayerMove : MonoBehaviour
     {
         torsoRot = ((playerXRot.rotation.eulerAngles.y - localRot + 180 + 360) % 360 - 180);
 
-        Debug.Log("");
-        Debug.Log(torsoRot);
-        Debug.Log(playerXRot.rotation.eulerAngles.y);
-        Debug.Log(localRot);
         // If Moving Forward
         if (Input.GetAxisRaw("Vertical") > 0)
         {
@@ -92,7 +88,7 @@ public class PlayerMove : MonoBehaviour
         {
             animator.SetBool("Backpedal", false);
             animator.SetBool("Moving", false);
-            modelRot = torsoRot;
+            modelRot = playerXRot.rotation.eulerAngles.y;
             model.transform.rotation = Quaternion.Euler(0, modelRot, 0);
             torsoRot = 0;
         }
