@@ -8,7 +8,7 @@ public class CameraControl : MonoBehaviour
     public Transform camRotPointY;
     public float sensitivity = 1;
     float xAxisClamp = 0.0f;
-
+    public float CameraXLimit;
 	void Update ()
     {
         Cursor.lockState = CursorLockMode.Locked;
@@ -32,15 +32,15 @@ public class CameraControl : MonoBehaviour
         targetRotY.z = 0;
         targetRotX.y += rotAmountX;
 
-        if (xAxisClamp > 90)
+        if (xAxisClamp > 90 - CameraXLimit)
         {
-            xAxisClamp = 90;
-            targetRotY.x = 90;
+            xAxisClamp = 90 - CameraXLimit;
+            targetRotY.x = 90 - CameraXLimit;
         }
-        else if (xAxisClamp < -90)
+        else if (xAxisClamp < -90 + CameraXLimit)
         {
-            xAxisClamp = -90;
-            targetRotY.x = 270;
+            xAxisClamp = -90 + CameraXLimit;
+            targetRotY.x = 270 + CameraXLimit;
         }
 
         camRotPointY.rotation = Quaternion.Euler(targetRotY);
