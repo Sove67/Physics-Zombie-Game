@@ -21,6 +21,9 @@ public class Grid_Generator : MonoBehaviour
     public Sector[,] sectorGrid;
     public int sectionCount;
 
+    // Other
+    public bool generateGrid;
+
     // Classes
     public class Connection // This class holds data on which edges of a sector border another sector of the same ID.
     {
@@ -59,7 +62,9 @@ public class Grid_Generator : MonoBehaviour
         NumberGrid();
         SectionGrid();
 
-        Mesh_Creator.CreateMeshes();
+        if (generateGrid)
+        { Mesh_Creator.CreateMeshes(); }
+
         Building_Creator.CreateCityBlock(sectionCount, gridDimensions, sectorGrid, sectionSideLength, streetWidth);
     }
 
