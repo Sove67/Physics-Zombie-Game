@@ -9,7 +9,7 @@ public class Mesh_Creator : MonoBehaviour
     public Grid_Generator Grid_Generator;
 
     // Mesh Rendering
-    private List<MeshContainer> meshList = new List<MeshContainer> { };
+    private readonly List<MeshContainer> meshList = new List<MeshContainer> { };
     public GameObject meshPrefab;
     public Material baseMaterial;
 
@@ -157,9 +157,11 @@ public class Mesh_Creator : MonoBehaviour
 
     public void SendMesh(MeshContainer newMesh)
     {
-        Mesh mesh = new Mesh();
-        mesh.vertices = newMesh.vertecies.ToArray();
-        mesh.triangles = newMesh.triangles.ToArray();
+        Mesh mesh = new Mesh
+        {
+            vertices = newMesh.vertecies.ToArray(),
+            triangles = newMesh.triangles.ToArray()
+        };
 
         newMesh.gameObject.GetComponent<MeshFilter>().mesh = mesh;
         newMesh.gameObject.GetComponent<MeshRenderer>().material = baseMaterial;

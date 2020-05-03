@@ -9,7 +9,7 @@ public class Building_Creator : MonoBehaviour
     public Grid_Generator Grid_Generator;
 
     // Tower Randomization
-    public Vector2Int randomizerRange;
+    public Vector3Int randomizerRange;
 
     // Models
     public int sectionHeight;
