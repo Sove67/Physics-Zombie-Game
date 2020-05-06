@@ -25,7 +25,7 @@ public class Building_Creator : MonoBehaviour
 
     public void CreateCityBlock(int sectionCount, Vector2Int gridDimensions, Grid_Generator.Sector[,] sectorGrid, int sectionSideLength, int streetWidth)
     {
-        int[] height = SectorPrep(sectionCount, gridDimensions, sectorGrid);
+        int[] height = SectorPrep(sectionCount);
 
         for (int y = 0; y < gridDimensions.y; y++)
         {
@@ -57,7 +57,7 @@ public class Building_Creator : MonoBehaviour
         baseplate.AddComponent<MeshCollider>();
     }
 
-    public int[] SectorPrep(int sectionCount, Vector2Int gridDimensions, Grid_Generator.Sector[,] sectorGrid) // Prepare each sector for sorting
+    public int[] SectorPrep(int sectionCount) // Prepare each sector for sorting
     {
         // For each ID
         int[] height = new int[sectionCount];
@@ -75,9 +75,8 @@ public class Building_Creator : MonoBehaviour
 
     public void EdgeCreator(int i, int x, int y, int[] height, Vector2Int gridDimensions, Grid_Generator.Sector[,] sectorGrid, int sectionSideLength, int streetWidth)
     {
-        GameObject newEdgePart;
-        GameObject[] edgeStack = new GameObject[3];
-        int id = sectorGrid[x, y].id ?? default(int); // Taken from https://stackoverflow.com/questions/5995317/how-to-convert-c-sharp-nullable-int-to-int/5995418
+        GameObject[] edgeStack;
+        int id = sectorGrid[x, y].id ?? default; // Taken from https://stackoverflow.com/questions/5995317/how-to-convert-c-sharp-nullable-int-to-int/5995418
 
         int xMod = (x * (sectionSideLength + streetWidth)) + (sectionSideLength / 2);
         int yMod = (y * (sectionSideLength + streetWidth)) + (sectionSideLength / 2);
@@ -87,7 +86,6 @@ public class Building_Creator : MonoBehaviour
         int left = ((i + 3) % 4);
         int front = i;
         int right = ((i + 1) % 4);
-        int back = ((i + 2) % 4);
 
         if (sectorGrid[x, y].connected[left] && !sectorGrid[x,y].connected[front] && sectorGrid[x, y].connected[right])
         { edgeStack = sideLeftRight; }
@@ -103,10 +101,7 @@ public class Building_Creator : MonoBehaviour
                 -1 < y + Mathf.RoundToInt(Mathf.Sin(radianDirection)) && y + Mathf.RoundToInt(Mathf.Sin(radianDirection)) < gridDimensions.y &&
                 sectorGrid[x + Mathf.RoundToInt(Mathf.Cos(radianDirection)), y + Mathf.RoundToInt(Mathf.Sin(radianDirection))].connected[left] )
             {
-                newEdgePart = Instantiate(cornerCap, new Vector3(xMod, (height[id] + 1) * sectionHeight, yMod), Quaternion.Euler(-90, 0, direction), GameObject.Find("Tower (" + id + ")").transform);
-                newEdgePart.name = ("Top Section  | Corner Cap | Coords: " + x + ", " + y);
-                newEdgePart.AddComponent<MeshCollider>();
-                newEdgePart.GetComponent<MeshRenderer>().material = towerMaterial;
+                InstantiateBuilding(cornerCap, new Vector3(xMod, (height[id] + 1) * sectionHeight, yMod), Quaternion.Euler(-90, 0, direction), GameObject.Find("Tower (" + id + ")"), "Top Section  | Corner Cap");
                 return;
             }
             else
@@ -114,23 +109,21 @@ public class Building_Creator : MonoBehaviour
         }
         else { return; }
 
-
-        newEdgePart = Instantiate(edgeStack[0], new Vector3(xMod, 0, yMod), Quaternion.Euler(-90, 0, direction), GameObject.Find("Tower (" + id + ")").transform);
-        newEdgePart.name = ("Bottom Section | " + edgeStack[0].name + " | Coords: " + x + ", " + y);
-        newEdgePart.AddComponent<MeshCollider>();
-        newEdgePart.GetComponent<MeshRenderer>().material = towerMaterial;
+        InstantiateBuilding(edgeStack[0], new Vector3(xMod, 0, yMod), Quaternion.Euler(-90, 0, direction), GameObject.Find("Tower (" + id + ")"), "Bottom Section | " + edgeStack[0].name);
 
         for (int b = 1; b <= height[id]; b++)
-        {
-            newEdgePart = Instantiate(edgeStack[1], new Vector3(xMod, b * sectionHeight, yMod), Quaternion.Euler(-90, 0, direction), GameObject.Find("Tower (" + id + ")").transform);
-            newEdgePart.name = ("Middle Section (" + b + ")  | " + edgeStack[0].name + " | Coords: " + x + ", " + y);
-            newEdgePart.AddComponent<MeshCollider>();
-            newEdgePart.GetComponent<MeshRenderer>().material = towerMaterial;
-        }
+        { InstantiateBuilding(edgeStack[1], new Vector3(xMod, b * sectionHeight, yMod), Quaternion.Euler(-90, 0, direction), GameObject.Find("Tower (" + id + ")"), "Middle Section (" + b + ")  | " + edgeStack[1].name); }
 
-        newEdgePart = Instantiate(edgeStack[2], new Vector3(xMod, (height[id] + 1) * sectionHeight, yMod), Quaternion.Euler(-90, 0, direction), GameObject.Find("Tower (" + id + ")").transform);
-        newEdgePart.name = ("Top Section  | " + edgeStack[0].name + " | Coords: " + x + ", " + y);
-        newEdgePart.AddComponent<MeshCollider>();
-        newEdgePart.GetComponent<MeshRenderer>().material = towerMaterial;
+        InstantiateBuilding(edgeStack[2], new Vector3(xMod, (height[id] + 1) * sectionHeight, yMod), Quaternion.Euler(-90, 0, direction), GameObject.Find("Tower (" + id + ")"), "Top Section  | " + edgeStack[2].name);
+    }
+
+    public void InstantiateBuilding(GameObject part, Vector3 position, Quaternion rotation, GameObject parent, string name)
+    {
+        GameObject newPart;
+        newPart = Instantiate(part, position, rotation, parent.transform);
+        newPart.tag = "Enviroment";
+        newPart.name = (name);
+        newPart.AddComponent<MeshCollider>();
+        newPart.GetComponent<MeshRenderer>().material = towerMaterial;
     }
 }

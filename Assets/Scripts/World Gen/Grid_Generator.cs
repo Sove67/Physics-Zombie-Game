@@ -85,7 +85,7 @@ public class Grid_Generator : MonoBehaviour
             {
                 text = text + numGrid[x, y] + ", ";
             }
-            text = text + "\n\n";
+            text += "\n\n";
         }
         Debug.Log(text);
     }
@@ -125,7 +125,7 @@ public class Grid_Generator : MonoBehaviour
                     NumberCrawler(x, y, id);
                     id++;
                 }
-                ConnectionMarker(x, y, id);
+                ConnectionMarker(x, y);
             }
         }
         sectionCount = id;
@@ -138,7 +138,7 @@ public class Grid_Generator : MonoBehaviour
             {
                 text = text + sectorGrid[x, y].id + ", ";
             }
-            text = text + "\n\n";
+            text += "\n\n";
         }
         Debug.Log(text);
     }
@@ -174,7 +174,7 @@ public class Grid_Generator : MonoBehaviour
         }
     }
 
-    public void ConnectionMarker(int x, int y, int id) // Marks the connection of any cardinally connected sectors with the same ID. UP/DOWN INVERTED
+    public void ConnectionMarker(int x, int y) // Marks the connection of any cardinally connected sectors with the same ID. UP/DOWN INVERTED
     {
         // Left
         if (x - 1 >= 0 && numGrid[x, y] == numGrid[x - 1, y])

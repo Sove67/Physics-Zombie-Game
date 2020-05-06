@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Zombie
   - Lure
+  - Enviroment
   layers:
   - Default
   - TransparentFX

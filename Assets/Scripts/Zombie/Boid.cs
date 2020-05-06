@@ -8,7 +8,7 @@ public class Boid : MonoBehaviour
     // Variables
     // Boid Logic
     public Boid_Settings settings;
-    private List<GameObject> swarm = new List<GameObject>();
+    private readonly List<GameObject> swarm = new List<GameObject>();
     public List<GameObject> targets = new List<GameObject>();
 
     // Self
