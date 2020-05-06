@@ -52,6 +52,7 @@ public class Player_Control : MonoBehaviour
         set
         { camY.localRotation = Quaternion.Euler(new Vector3(value, 0, 0)); }
     }
+    [HideInInspector] public bool onEnviroment;
 
     [Header("Player Settings")]
     public float sensitivity = 1;
@@ -104,25 +105,31 @@ public class Player_Control : MonoBehaviour
 
     void LookPoint()
     {
-        Vector3 origin = playerCamera.transform.position;
-        Vector3 direction = playerCamera.transform.forward;
-        Ray aimRay = new Ray(origin, direction);
+        Vector3 origin = camY.transform.position;
+        Vector3 direction = camY.transform.forward;
         Debug.DrawRay(origin, direction * rayLength);
+        Vector3 position = origin + direction * rayLength;
+        Quaternion rotation = Quaternion.Euler(0, 0, 0);
 
-        if (Physics.Raycast(aimRay, out RaycastHit hit, rayLength))
+        if (Physics.Raycast(new Ray(origin, direction), out RaycastHit hit, rayLength) && hit.collider.CompareTag("Enviroment"))
         {
-            if (hit.collider.CompareTag("Enviroment"))
-            {
-                lookIndicator.transform.position = hit.point;
-                lookIndicator.transform.rotation = Quaternion.Euler(hit.normal);
-            }
-        }
+            onEnviroment = true;
+            lookIndicator.transform.Find("Active").gameObject.SetActive(true);
+            lookIndicator.transform.Find("Inactive").gameObject.SetActive(false);
 
+            position = hit.point;
+            Vector3 normal = Quaternion.LookRotation(hit.normal).eulerAngles;
+            normal.x += 90;
+            rotation = Quaternion.Euler(normal);
+        }
         else
         {
-            lookIndicator.transform.position = origin + direction * rayLength;
-            lookIndicator.transform.rotation = Quaternion.Euler(0,0,0);
+            onEnviroment = false;
+            lookIndicator.transform.Find("Active").gameObject.SetActive(false);
+            lookIndicator.transform.Find("Inactive").gameObject.SetActive(true);
         }
+        lookIndicator.transform.position = position;
+        lookIndicator.transform.rotation = rotation;
     }
 
     public void Animate()

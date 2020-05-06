@@ -51,10 +51,12 @@ public class Building_Creator : MonoBehaviour
         int[] triangles = new int[] {0, 3, 1,     2, 3, 0};
 
         GameObject baseplate = new GameObject("Baseplate");
+        baseplate.tag = "Enviroment";
         baseplate.AddComponent<MeshFilter>().mesh.vertices = baseCoords;
         baseplate.GetComponent<MeshFilter>().mesh.triangles = triangles;
         baseplate.AddComponent<MeshRenderer>().material = roadMaterial;
         baseplate.AddComponent<MeshCollider>();
+
     }
 
     public int[] SectorPrep(int sectionCount) // Prepare each sector for sorting
